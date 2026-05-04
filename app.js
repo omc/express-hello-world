@@ -3,10 +3,14 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 async function getSearchResponse() {
+    const username = proc.env.BONSAI_ACCESS_KEY;
+    const password = proc.env.BONSAI_ACCESS_SECRET;
+    const auth = btoa("${username}:${password}");
     let searchRequest = await fetch(process.env.BONSAI_URL, {
         headers: {
           'User-Agent': 'RenderTest-v1.0',
           'Content-Type': 'application/json',
+          'Authorization': "Basic ${auth}"
         }
       });
     return await searchRequest.json();
