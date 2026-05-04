@@ -5,24 +5,24 @@ const port = process.env.PORT || 3001;
 async function getSearchResponse() {
     const username = process.env.BONSAI_ACCESS_KEY;
     const password = process.env.BONSAI_ACCESS_SECRET;
-    const auth = btoa("${username}:${password}");
+    const auth = btoa(`${username}:${password}`);  // backticks
     let searchRequest = await fetch(process.env.BONSAI_URL, {
         headers: {
           'User-Agent': 'RenderTest-v1.0',
           'Content-Type': 'application/json',
-          'Authorization': "Basic ${auth}"
+          'Authorization': `Basic ${auth}`  // backticks
         }
       });
     return await searchRequest.json();
 }
-app.get("/", (req, res) => res.type('html').send(html));
-
-const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
-
-server.keepAliveTimeout = 120 * 1000;
-server.headersTimeout = 120 * 1000;
-
-const html = `
+app.get("/", async (req, res) => {  // async handler
+    let result;
+    try {
+        result = JSON.stringify(await getSearchResponse(), null, 2);
+    } catch (e) {
+        result = `Error: ${e.message}`;
+    }
+    const html = `
 <!DOCTYPE html>
 <html>
   <head>
@@ -69,7 +69,14 @@ const html = `
     <section>
       Hello from Render!
     </section>
-    <pre>${getSearchResponse()}</pre>
+    <pre>${result}</pre>
   </body>
 </html>
-`
+`;
+    res.type('html').send(html);
+});
+
+const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+
+server.keepAliveTimeout = 120 * 1000;
+server.headersTimeout = 120 * 1000;
