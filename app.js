@@ -2,13 +2,15 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 3001;
 
-let searchRequest = await fetch(process.env.BONSAI_URL, {
-    headers: {
-      'User-Agent': 'RenderTest-v1.0',
-      'Content-Type': 'application/json',
-    }
-  });
-let searchResponse = await searchRequest.json();
+async function getSearchResponse() {
+    let searchRequest = await fetch(process.env.BONSAI_URL, {
+        headers: {
+          'User-Agent': 'RenderTest-v1.0',
+          'Content-Type': 'application/json',
+        }
+      });
+    return await searchRequest.json();
+}
 app.get("/", (req, res) => res.type('html').send(html));
 
 const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
@@ -63,7 +65,7 @@ const html = `
     <section>
       Hello from Render!
     </section>
-    <pre>${searchResponse}</pre>
+    <pre>${getSearchResponse()}</pre>
   </body>
 </html>
 `
