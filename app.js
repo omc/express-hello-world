@@ -3,8 +3,8 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 async function getSearchResponse() {
-    const username = proc.env.BONSAI_ACCESS_KEY;
-    const password = proc.env.BONSAI_ACCESS_SECRET;
+    const username = process.env.BONSAI_ACCESS_KEY;
+    const password = process.env.BONSAI_ACCESS_SECRET;
     const auth = btoa("${username}:${password}");
     let searchRequest = await fetch(process.env.BONSAI_URL, {
         headers: {
