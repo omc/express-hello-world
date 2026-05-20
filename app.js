@@ -15,6 +15,30 @@ async function getSearchResponse() {
       });
     return await searchRequest.json();
 }
+app.get("/debug", async (req, res) => {
+    const net = require('net');
+    const url = new URL(process.env.BONSAI_URL);
+    const host = url.hostname;
+    const port = parseInt(url.port) || 80;
+
+    const result = await new Promise((resolve) => {
+        const socket = net.createConnection({ host, port }, () => {
+            // Send a minimal raw HTTP request
+            socket.write(`GET / HTTP/1.1\r\nHost: ${host}\r\nConnection: close\r\n\r\n`);
+        });
+
+        let data = '';
+        socket.on('data', (chunk) => { data += chunk.toString('hex'); });
+        socket.on('close', () => resolve({ status: 'closed', data }));
+        socket.on('error', (e) => resolve({ error: e.message, code: e.code }));
+        socket.setTimeout(5000, () => {
+            socket.destroy();
+            resolve({ error: 'timeout' });
+        });
+    });
+
+    res.json({ host, port, result });
+});
 app.get("/", async (req, res) => {  // async handler
     let result;
     try {
