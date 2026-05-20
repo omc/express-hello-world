@@ -1,25 +1,35 @@
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 3001;
-const { fetch } = require('undici');
-const { Agent } = require('undici');
+const https = require('https');
 
-async function getSearchResponse() {
+function getSearchResponse() {
     const username = process.env.BONSAI_ACCESS_KEY;
     const password = process.env.BONSAI_ACCESS_SECRET;
     const auth = btoa(`${username}:${password}`);
+    const url = new URL(process.env.BONSAI_URL);
 
-    return await (await fetch(process.env.BONSAI_URL, {
-        dispatcher: new Agent({
-            connect: { servername: process.env.BONSAI_HOST }
-        }),
-        headers: {
-            'User-Agent': 'RenderTest-v1.0',
-            'Content-Type': 'application/json',
-            'Authorization': `Basic ${auth}`,
-            'Host': process.env.BONSAI_HOST,
-        }
-    })).json();
+    return new Promise((resolve, reject) => {
+        const req = https.request({
+            hostname: url.hostname,
+            port: url.port || 443,
+            path: url.pathname || '/',
+            method: 'GET',
+            servername: process.env.BONSAI_HOST,  // SNI
+            headers: {
+                'Host': process.env.BONSAI_HOST,
+                'User-Agent': 'RenderTest-v1.0',
+                'Content-Type': 'application/json',
+                'Authorization': `Basic ${auth}`,
+            }
+        }, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => resolve(JSON.parse(data)));
+        });
+        req.on('error', reject);
+        req.end();
+    });
 };
 app.get("/debug", async (req, res) => {
     const net = require('net');
