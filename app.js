@@ -1,20 +1,26 @@
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 3001;
+const { fetch } = require('undici');
+const { Agent } = require('undici');
 
 async function getSearchResponse() {
     const username = process.env.BONSAI_ACCESS_KEY;
     const password = process.env.BONSAI_ACCESS_SECRET;
-    const auth = btoa(`${username}:${password}`);  // backticks
-    let searchRequest = await fetch(process.env.BONSAI_URL, {
+    const auth = btoa(`${username}:${password}`);
+
+    return await (await fetch(process.env.BONSAI_URL, {
+        dispatcher: new Agent({
+            connect: { servername: process.env.BONSAI_HOST }
+        }),
         headers: {
-          'User-Agent': 'RenderTest-v1.0',
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${auth}`  // backticks
+            'User-Agent': 'RenderTest-v1.0',
+            'Content-Type': 'application/json',
+            'Authorization': `Basic ${auth}`,
+            'Host': process.env.BONSAI_HOST,
         }
-      });
-    return await searchRequest.json();
-}
+    })).json();
+};
 app.get("/debug", async (req, res) => {
     const net = require('net');
     const url = new URL(process.env.BONSAI_URL);
