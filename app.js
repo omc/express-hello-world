@@ -19,9 +19,13 @@ app.get("/", async (req, res) => {  // async handler
     let result;
     try {
         result = JSON.stringify(await getSearchResponse(), null, 2);
-    } catch (e) {
-        result = `Error: ${e.message}`;
-    }
+} catch (e) {
+    result = JSON.stringify({
+        message: e.message,
+        cause: e.cause ? { message: e.cause.message, code: e.cause.code } : null,
+        stack: e.stack,
+    }, null, 2);
+}
     const html = `
 <!DOCTYPE html>
 <html>
